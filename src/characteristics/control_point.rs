@@ -1,15 +1,15 @@
 use crate::attributes::app::AppAttributeID;
-use crate::attributes::notification::NotificationAttributeID;
 use crate::attributes::command::*;
+use crate::attributes::notification::NotificationAttributeID;
 
 use nom::{
-    bytes::complete::{take_till},
-    combinator::{opt, fail},
+    branch::alt,
+    bytes::complete::take_till,
+    combinator::verify,
+    combinator::{fail, opt},
+    multi::many0,
     number::complete::le_u16,
-    combinator::{verify},
-    multi::{many0},
-    number::complete::{le_u8, le_u32},
-    branch::{alt},
+    number::complete::{le_u32, le_u8},
     sequence::{pair, terminated},
     IResult,
 };
@@ -20,14 +20,14 @@ pub struct GetNotificationAttributesRequest {
     pub command_id: CommandID,
     pub notification_uid: u32,
     // Rust doesn't have a clean way to express variadic tuples, and Apple has decided that some attributes need a max_length
-    // assigned. To ensure that users can serialize requests without losing data we're left with this terrible solution of 
+    // assigned. To ensure that users can serialize requests without losing data we're left with this terrible solution of
     // having users optionally provide a length or not I can't come up with a good name for a structure here so we're left with this.
     pub attribute_ids: Vec<(NotificationAttributeID, Option<u16>)>,
 }
 
 impl From<GetNotificationAttributesRequest> for Vec<u8> {
     /// Converts a `GetNotificationAttributesRequest` to a `Vec<u8>`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::command::CommandID;
@@ -38,10 +38,10 @@ impl From<GetNotificationAttributesRequest> for Vec<u8> {
     ///    notification_uid: 4294967295_u32,
     ///    attribute_ids: vec![(NotificationAttributeID::AppIdentifier, None), (NotificationAttributeID::Title, Some(u16::MAX))],
     /// };
-    /// 
+    ///
     /// let data: Vec<u8> = notification.into();
     /// let expected_data: Vec<u8> = vec![0, 255, 255, 255, 255, 0, 1, 255, 255];
-    /// 
+    ///
     /// assert_eq!(data, expected_data)
     /// ```
     fn from(original: GetNotificationAttributesRequest) -> Vec<u8> {
@@ -56,7 +56,7 @@ impl From<GetNotificationAttributesRequest> for Vec<u8> {
                     let length_bytes: [u8; 2] = length.to_le_bytes();
                     attribute_ids.push(byte);
                     attribute_ids.extend(length_bytes);
-                },
+                }
                 None => {
                     let byte: u8 = id.0.into();
                     attribute_ids.push(byte);
@@ -76,21 +76,21 @@ impl From<GetNotificationAttributesRequest> for Vec<u8> {
 
 impl GetNotificationAttributesRequest {
     /// Attempts to parse a `GetNotificationAttributesRequest` from a `&[u8]`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::command::CommandID;
     /// # use ancs::attributes::notification::NotificationAttributeID;
     /// # use ancs::characteristics::control_point::GetNotificationAttributesRequest;
     /// let data: Vec<u8> = vec![
-    ///     0, 
+    ///     0,
     ///     255,
-    ///     255, 
-    ///     255, 
-    ///     255, 
-    ///     0, 
-    ///     1, 
-    ///     255, 
+    ///     255,
+    ///     255,
+    ///     255,
+    ///     0,
+    ///     1,
+    ///     255,
     ///     255
     /// ];
     /// let (data, notification) = GetNotificationAttributesRequest::parse(&data).unwrap();
@@ -102,18 +102,20 @@ impl GetNotificationAttributesRequest {
     pub fn parse(i: &[u8]) -> IResult<&[u8], GetNotificationAttributesRequest> {
         let (i, command_id) = CommandID::parse(i)?;
         let (i, notification_uid) = le_u32(i)?;
-        let (i, attribute_ids) = many0(
-            alt((
-                pair(
-                    verify(NotificationAttributeID::parse, |&id| NotificationAttributeID::is_sized(id)),
-                    opt(le_u16),
-                ),
-                pair(
-                    verify(NotificationAttributeID::parse, |&id| !NotificationAttributeID::is_sized(id)),
-                    opt(fail),
-                ),
-            ))
-        )(i)?; 
+        let (i, attribute_ids) = many0(alt((
+            pair(
+                verify(NotificationAttributeID::parse, |&id| {
+                    NotificationAttributeID::is_sized(id)
+                }),
+                opt(le_u16),
+            ),
+            pair(
+                verify(NotificationAttributeID::parse, |&id| {
+                    !NotificationAttributeID::is_sized(id)
+                }),
+                opt(fail),
+            ),
+        )))(i)?;
 
         println!("{:?}", attribute_ids);
 
@@ -136,7 +138,7 @@ pub struct GetAppAttributesRequest {
 
 impl From<GetAppAttributesRequest> for Vec<u8> {
     /// Converts a `GetAppAttributesRequest` to a `Vec<u8>`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::command::CommandID;
@@ -165,7 +167,7 @@ impl From<GetAppAttributesRequest> for Vec<u8> {
             .map(|id| id.into())
             .collect();
 
-        // Rust strings are not null terminated by default 
+        // Rust strings are not null terminated by default
         // however it is possible that the user knows to insert
         // a null terminated string of some kind this helps us
         // ensure that all strings submitted to ANCS are null
@@ -184,7 +186,7 @@ impl From<GetAppAttributesRequest> for Vec<u8> {
 
 impl GetAppAttributesRequest {
     /// Attempts to parse a `GetAppAttributesRequest` from a `&[u8]`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::command::CommandID;
@@ -200,9 +202,7 @@ impl GetAppAttributesRequest {
     pub fn parse(i: &[u8]) -> IResult<&[u8], GetAppAttributesRequest> {
         let (i, command_id) = CommandID::parse(i)?;
         let (i, app_identifier) = terminated(take_till(|b| b == 0), le_u8)(i)?;
-        let (i, attribute_ids) = many0(
-            AppAttributeID::parse
-        )(i)?; 
+        let (i, attribute_ids) = many0(AppAttributeID::parse)(i)?;
 
         println!("{:?}", attribute_ids);
 

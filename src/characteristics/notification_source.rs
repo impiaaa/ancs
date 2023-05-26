@@ -16,7 +16,7 @@ pub struct Notification {
 
 impl Notification {
     /// Attempts to parse a `Notification` from a `&[u8]`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::category::CategoryID;
@@ -34,7 +34,7 @@ impl Notification {
     /// let notification_bytes: [u8; 8] = notification.into();
     ///
     /// let parsed_notification = Notification::parse(&notification_bytes).unwrap().1;
-    /// 
+    ///
     /// assert_eq!(parsed_notification.event_id, EventID::NotificationAdded);
     /// assert_eq!(parsed_notification.event_flags, EventFlag::Silent);
     /// assert_eq!(parsed_notification.category_id, CategoryID::Other);
@@ -63,7 +63,7 @@ impl Notification {
 
 impl From<Notification> for [u8; 8] {
     /// Converts a `Notification` to a `[u8; 8]`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::category::CategoryID;

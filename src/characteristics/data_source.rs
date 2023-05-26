@@ -1,13 +1,13 @@
+use crate::attributes::command::*;
 use crate::attributes::AppAttribute;
 use crate::attributes::NotificationAttribute;
-use crate::attributes::command::*;
 
 use nom::combinator::all_consuming;
 use nom::{
     bytes::complete::take_till,
-    multi::{many0},
-    number::complete::{le_u8, le_u32},
-    sequence::{terminated},
+    multi::many0,
+    number::complete::{le_u32, le_u8},
+    sequence::terminated,
     IResult,
 };
 
@@ -22,7 +22,7 @@ pub struct GetNotificationAttributesResponse {
 
 impl From<GetNotificationAttributesResponse> for Vec<u8> {
     /// Converts a `GetNotificationAttributesResponse` to a `Vec<u8>`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::command::CommandID;
@@ -33,17 +33,17 @@ impl From<GetNotificationAttributesResponse> for Vec<u8> {
     ///     command_id: CommandID::GetNotificationAttributes,
     ///     notification_uid: 4294967295_u32,
     ///     attribute_list: vec![
-    ///         NotificationAttribute { 
-    ///             id: NotificationAttributeID::AppIdentifier, 
-    ///             length: "com.rust.test".to_string().as_bytes().len() as u16, 
-    ///             value: Some("com.rust.test".to_string()) 
+    ///         NotificationAttribute {
+    ///             id: NotificationAttributeID::AppIdentifier,
+    ///             length: "com.rust.test".to_string().as_bytes().len() as u16,
+    ///             value: Some("com.rust.test".to_string())
     ///         }
     ///     ],
     /// };
     ///
     /// let data: Vec<u8> = notification.into();
     /// let expected_data: Vec<u8> = vec![0, 255, 255, 255, 255, 0, 13, 0, 99, 111, 109, 46, 114, 117, 115, 116, 46, 116, 101, 115, 116];
-    /// 
+    ///
     /// assert_eq!(data, expected_data)
     /// ```
     fn from(original: GetNotificationAttributesResponse) -> Vec<u8> {
@@ -70,7 +70,7 @@ impl From<GetNotificationAttributesResponse> for Vec<u8> {
 
 impl GetNotificationAttributesResponse {
     /// Attempts to parse a `GetNotificationAttributesResponse` from a `&[u8]`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::command::CommandID;
@@ -83,10 +83,10 @@ impl GetNotificationAttributesResponse {
     /// assert_eq!(notification.1.command_id, CommandID::GetNotificationAttributes);
     /// assert_eq!(notification.1.notification_uid, 4294967295_u32);
     /// assert_eq!(notification.1.attribute_list, vec![
-    ///    NotificationAttribute { 
-    ///        id: NotificationAttributeID::AppIdentifier, 
-    ///        length: "com.rust.test".to_string().as_bytes().len() as u16, 
-    ///        value: Some("com.rust.test".to_string()) 
+    ///    NotificationAttribute {
+    ///        id: NotificationAttributeID::AppIdentifier,
+    ///        length: "com.rust.test".to_string().as_bytes().len() as u16,
+    ///        value: Some("com.rust.test".to_string())
     ///    }
     /// ]);
     /// ```
@@ -115,22 +115,22 @@ pub struct GetAppAttributesResponse {
 
 impl From<GetAppAttributesResponse> for Vec<u8> {
     /// Converts a `GetAppAttributesResponse` to a `Vec<u8>`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::command::CommandID;
     /// # use ancs::attributes::AppAttribute;
     /// # use ancs::attributes::app::AppAttributeID;
     /// # use ancs::characteristics::data_source::GetAppAttributesResponse;
-    /// 
+    ///
     /// let response: GetAppAttributesResponse = GetAppAttributesResponse {
     ///     command_id: CommandID::GetAppAttributes,
     ///     app_identifier: "com.apple.test".to_string(),
     ///     attribute_list: vec![
-    ///         AppAttribute { 
-    ///             id: AppAttributeID::DisplayName, 
-    ///             length: "Test".to_string().as_bytes().len() as u16, 
-    ///             value: Some("Test".to_string()) 
+    ///         AppAttribute {
+    ///             id: AppAttributeID::DisplayName,
+    ///             length: "Test".to_string().as_bytes().len() as u16,
+    ///             value: Some("Test".to_string())
     ///         }
     ///     ],
     /// };
@@ -138,13 +138,13 @@ impl From<GetAppAttributesResponse> for Vec<u8> {
     /// let expected_data: Vec<u8> = vec![
     ///     1,
     ///     99,
-    ///     111, 
-    ///     109, 
+    ///     111,
+    ///     109,
     ///     46,
     ///     97,
     ///     112,
-    ///     112, 
-    ///     108, 
+    ///     112,
+    ///     108,
     ///     101,
     ///     46,
     ///     116,
@@ -161,12 +161,12 @@ impl From<GetAppAttributesResponse> for Vec<u8> {
     ///     116
     /// ];
     /// let data: Vec<u8> = response.into();
-    /// 
+    ///
     /// assert_eq!(data, expected_data)
     /// ```
     fn from(original: GetAppAttributesResponse) -> Vec<u8> {
         let mut vec: Vec<u8> = Vec::new();
-        
+
         // Convert all attributes to bytes
         let command_id: u8 = original.command_id.into();
         let mut app_identifier: Vec<u8> = original.app_identifier.as_bytes().to_vec();
@@ -178,7 +178,7 @@ impl From<GetAppAttributesResponse> for Vec<u8> {
             .flat_map(|att: Vec<u8>| att)
             .collect();
 
-        // Rust strings are not null terminated by default 
+        // Rust strings are not null terminated by default
         // however it is possible that the user knows to insert
         // a null terminated string of some kind this helps us
         // ensure that all strings submitted to ANCS are null
@@ -197,24 +197,24 @@ impl From<GetAppAttributesResponse> for Vec<u8> {
 
 impl GetAppAttributesResponse {
     /// Attempts to parse a `GetAppAttributesResponse` from a `&[u8]`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::command::CommandID;
     /// # use ancs::attributes::AppAttribute;
     /// # use ancs::attributes::app::AppAttributeID;
     /// # use ancs::characteristics::data_source::GetAppAttributesResponse;
-    /// 
+    ///
     /// let data: Vec<u8> = vec![
     ///     1,
     ///     99,
-    ///     111, 
-    ///     109, 
+    ///     111,
+    ///     109,
     ///     46,
     ///     97,
     ///     112,
-    ///     112, 
-    ///     108, 
+    ///     112,
+    ///     108,
     ///     101,
     ///     46,
     ///     116,
@@ -230,16 +230,16 @@ impl GetAppAttributesResponse {
     ///     115,
     ///     116
     /// ];
-    /// 
+    ///
     /// let (data, response) = GetAppAttributesResponse::parse(&data).unwrap();
     ///
     /// assert_eq!(response.command_id, CommandID::GetAppAttributes);
     /// assert_eq!(response.app_identifier, "com.apple.test");
     /// assert_eq!(response.attribute_list, vec![
-    ///    AppAttribute { 
-    ///        id: AppAttributeID::DisplayName, 
-    ///        length: "Test".to_string().as_bytes().len() as u16, 
-    ///        value: Some("Test".to_string()) 
+    ///    AppAttribute {
+    ///        id: AppAttributeID::DisplayName,
+    ///        length: "Test".to_string().as_bytes().len() as u16,
+    ///        value: Some("Test".to_string())
     ///    }
     /// ]);
     /// ```

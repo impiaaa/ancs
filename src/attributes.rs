@@ -1,9 +1,9 @@
 //! ## Attributes
-//! 
+//!
 //! Attributes are the smallest data entity defined by `GATT`. In the case of the ANCS service
 //! there are a wide variety of Attributes that can be used. Please see the attributes module
 //! provided by this library for which attributes are valid when working with ANCS.
-//! 
+//!
 pub mod app;
 pub mod category;
 pub mod command;
@@ -17,19 +17,19 @@ use nom::{
 };
 use std::fmt::Debug;
 
-use self::{notification::NotificationAttributeID, app::AppAttributeID};
+use self::{app::AppAttributeID, notification::NotificationAttributeID};
 
 /// The `NotificationAttribute` type. See [the module level documentation](index.html) for more.
 #[derive(Debug, PartialEq, Clone)]
 pub struct NotificationAttribute {
-    pub id: NotificationAttributeID, 
-    pub length: u16, 
-    pub value: Option<String>
+    pub id: NotificationAttributeID,
+    pub length: u16,
+    pub value: Option<String>,
 }
 
 impl From<NotificationAttribute> for Vec<u8> {
     /// Converts a `NotificationAttribute` to a `Vec<u8>`:
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::NotificationAttribute;
@@ -42,9 +42,9 @@ impl From<NotificationAttribute> for Vec<u8> {
     ///    length: attribute_length,
     ///    value: Some(attribute_data)
     /// };
-    /// 
+    ///
     /// let converted_bytes: Vec<u8> = attribute.into();
-    /// 
+    ///
     /// assert_eq!(u8::MIN, converted_bytes[0]); // Identifier for attribute
     /// assert_eq!(4, converted_bytes[1]); // Length of attribute
     /// assert_eq!(0, converted_bytes[2]); // 4 doesn't need an extra byte so it's empty
@@ -59,7 +59,7 @@ impl From<NotificationAttribute> for Vec<u8> {
         let id: u8 = original.id.into();
         let length: [u8; 2] = original.length.to_le_bytes();
         let attribute: Option<Vec<u8>> = match original.value {
-            Some(value) => { Some(value.into_bytes()) },
+            Some(value) => Some(value.into_bytes()),
             None => None,
         };
 
@@ -68,7 +68,7 @@ impl From<NotificationAttribute> for Vec<u8> {
 
         // If the attribute's value isn't null we add it to our bytes.
         match attribute {
-            Some(attribute) => { vec.extend(attribute)},
+            Some(attribute) => vec.extend(attribute),
             None => (),
         };
 
@@ -78,9 +78,9 @@ impl From<NotificationAttribute> for Vec<u8> {
 
 impl NotificationAttribute {
     /// Attempts to parse a `NotificationAttribute` from a `&[u8]`
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// Convert a `NotificationAttribute` to a `Vec<u8>`:
     /// ```
     /// # use ancs::attributes::NotificationAttribute;
@@ -88,17 +88,17 @@ impl NotificationAttribute {
     /// // Attribute Bytes Specificed by ANCS Standard
     /// let bytes: Vec<u8> = vec![0, 4, 0, 116, 101, 115, 116, 0];
     /// let (bytes, attribute) = NotificationAttribute::parse(&bytes).unwrap();
-    /// 
+    ///
     /// // Validate that all bytes were parsed per ANCS Standard
     /// assert_eq!(attribute.id, NotificationAttributeID::AppIdentifier);
     /// assert_eq!(attribute.length, 4);
     /// assert_eq!(attribute.value, Some("test".to_string()));
-    /// 
+    ///
     /// // Validate all remaining bytes are the same
     /// assert_eq!(bytes.len(), 1);
     /// assert_eq!(bytes, [0]);
     /// ```
-    /// 
+    ///
     pub fn parse(i: &[u8]) -> IResult<&[u8], NotificationAttribute> {
         let (i, id) = notification::NotificationAttributeID::parse(i)?;
         let (i, length) = le_u16(i)?;
@@ -118,14 +118,14 @@ impl NotificationAttribute {
 /// The `AppAttribute` type. See [the module level documentation](index.html) for more.
 #[derive(Debug, PartialEq, Clone)]
 pub struct AppAttribute {
-    pub id: AppAttributeID, 
-    pub length: u16, 
-    pub value: Option<String>
+    pub id: AppAttributeID,
+    pub length: u16,
+    pub value: Option<String>,
 }
 
 impl From<AppAttribute> for Vec<u8> {
     /// Converts a `AppAttribute` to a `Vec<u8>`:
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::AppAttribute;
@@ -138,9 +138,9 @@ impl From<AppAttribute> for Vec<u8> {
     ///    length: attribute_length,
     ///    value: Some(attribute_data)
     /// };
-    /// 
+    ///
     /// let converted_bytes: Vec<u8> = attribute.into();
-    /// 
+    ///
     /// assert_eq!(u8::MIN, converted_bytes[0]); // Identifier for attribute
     /// assert_eq!(4, converted_bytes[1]); // Length of attribute
     /// assert_eq!(0, converted_bytes[2]); // 4 doesn't need an extra byte so it's empty
@@ -155,7 +155,7 @@ impl From<AppAttribute> for Vec<u8> {
         let id: u8 = original.id.into();
         let length: [u8; 2] = original.length.to_le_bytes();
         let attribute: Option<Vec<u8>> = match original.value {
-            Some(value) => { Some(value.into_bytes()) },
+            Some(value) => Some(value.into_bytes()),
             None => None,
         };
 
@@ -164,7 +164,7 @@ impl From<AppAttribute> for Vec<u8> {
 
         // If the attribute's value isn't null we add it to our bytes.
         match attribute {
-            Some(attribute) => { vec.extend(attribute)},
+            Some(attribute) => vec.extend(attribute),
             None => (),
         };
 
@@ -174,9 +174,9 @@ impl From<AppAttribute> for Vec<u8> {
 
 impl AppAttribute {
     /// Attempts to parse a `AppAttribute` from a `&[u8]`
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// Convert a `AppAttribute` to a `Vec<u8>`:
     /// ```
     /// # use ancs::attributes::AppAttribute;
@@ -184,17 +184,17 @@ impl AppAttribute {
     /// // Attribute Bytes Specificed by ANCS Standard
     /// let bytes: Vec<u8> = vec![0, 4, 0, 116, 101, 115, 116, 0];
     /// let (bytes, attribute) = AppAttribute::parse(&bytes).unwrap();
-    /// 
+    ///
     /// // Validate that all bytes were parsed per ANCS Standard
     /// assert_eq!(attribute.id, AppAttributeID::DisplayName);
     /// assert_eq!(attribute.length, 4);
     /// assert_eq!(attribute.value, Some("test".to_string()));
-    /// 
+    ///
     /// // Validate all remaining bytes are the same
     /// assert_eq!(bytes.len(), 1);
     /// assert_eq!(bytes, [0]);
     /// ```
-    /// 
+    ///
     pub fn parse(i: &[u8]) -> IResult<&[u8], AppAttribute> {
         let (i, id) = app::AppAttributeID::parse(i)?;
         let (i, length) = le_u16(i)?;

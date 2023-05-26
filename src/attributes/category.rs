@@ -1,7 +1,4 @@
-use nom::{
-    number::complete::{le_u8},
-    IResult, error::ParseError,
-};
+use nom::{error::ParseError, number::complete::le_u8, IResult};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum CategoryID {
@@ -21,14 +18,14 @@ pub enum CategoryID {
 
 impl From<CategoryID> for u8 {
     /// Converts an `CategoryID` to its binary represenation
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// Convert a `CategoryID` to a `u8`:
     /// ```
     /// # use ancs::attributes::category::CategoryID;
     /// let data: u8 = CategoryID::Other.into();
-    /// 
+    ///
     /// assert_eq!(0, data);
     /// ```
     fn from(original: CategoryID) -> u8 {
@@ -53,16 +50,16 @@ impl TryFrom<u8> for CategoryID {
     type Error = CategoryIDError;
 
     /// Attempts to convert a u8 to a valid `CategoryID`
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use ancs::attributes::app::AppAttributeID;
     /// let attribute: AppAttributeID = AppAttributeID::try_from(0).unwrap();
-    /// 
+    ///
     /// assert_eq!(AppAttributeID::DisplayName, attribute);
     /// ```
-    /// 
+    ///
     fn try_from(original: u8) -> Result<Self, Self::Error> {
         match original {
             0 => Ok(CategoryID::Other),
@@ -84,22 +81,25 @@ impl TryFrom<u8> for CategoryID {
 
 impl CategoryID {
     /// Attempts to parse a `CategoryID` from a `&[u8]`
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::category::CategoryID;
     /// let data: [u8; 2] = [0, 1];
     /// let (data, category_id) = CategoryID::parse(&data).unwrap();
-    /// 
+    ///
     /// assert_eq!(CategoryID::Other, category_id);
     /// ```
-    /// 
+    ///
     pub fn parse(i: &[u8]) -> IResult<&[u8], CategoryID> {
         let (i, category_id) = le_u8(i)?;
 
         match CategoryID::try_from(category_id) {
-            Ok(category_id) => { Ok((i, category_id)) },
-            Err(_) => Err(nom::Err::Failure(ParseError::from_error_kind(i, nom::error::ErrorKind::Fail))),
+            Ok(category_id) => Ok((i, category_id)),
+            Err(_) => Err(nom::Err::Failure(ParseError::from_error_kind(
+                i,
+                nom::error::ErrorKind::Fail,
+            ))),
         }
     }
 }
