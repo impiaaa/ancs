@@ -102,20 +102,18 @@ impl From<EventFlag> for u8 {
     }
 }
 
-impl TryFrom<u8> for EventFlag {
-    type Error = EventFlagError;
-
-    /// Attempts to convert a `u8` to a `EventFlag`
+impl From<u8> for EventFlag {
+    /// Convert a `u8` to a `EventFlag`, discarding any unknown flags
     ///
     /// # Examples
     /// ```
     /// # use ancs::attributes::event::EventFlag;
-    /// let event_flag: EventFlag = EventFlag::try_from(0b00000001).unwrap();
+    /// let event_flag: EventFlag = EventFlag::from(0b00000001);
     ///
     /// assert_eq!(EventFlag::Silent, event_flag);
     /// ```
-    fn try_from(original: u8) -> Result<Self, Self::Error> {
-        EventFlag::from_bits(original).ok_or(EventFlagError)
+    fn from(original: u8) -> Self {
+        EventFlag::from_bits_truncate(original)
     }
 }
 
