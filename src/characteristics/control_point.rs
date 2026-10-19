@@ -104,20 +104,18 @@ impl GetNotificationAttributesRequest {
     pub fn parse(i: &[u8]) -> IResult<&[u8], GetNotificationAttributesRequest> {
         let (i, command_id) = CommandID::parse(i)?;
         let (i, notification_uid) = le_u32(i)?;
-        let (i, attribute_ids) = many0(alt((
-            pair(
-                verify(NotificationAttributeID::parse, |&id| {
-                    NotificationAttributeID::is_sized(id)
-                }),
-                opt(le_u16),
-            ),
-            pair(
-                verify(NotificationAttributeID::parse, |&id| {
-                    !NotificationAttributeID::is_sized(id)
-                }),
-                opt(fail),
-            ),
-        )))(i)?;
+        let (i, attribute_ids) = many0(
+            alt((
+                pair(
+                    verify(NotificationAttributeID::parse, |&id| NotificationAttributeID::is_sized(id)),
+                    opt(le_u16),
+                ),
+                pair(
+                    verify(NotificationAttributeID::parse, |&id| !NotificationAttributeID::is_sized(id)),
+                    opt(fail),
+                ),
+            ))
+        )(i)?; 
 
         Ok((
             i,
@@ -202,7 +200,9 @@ impl GetAppAttributesRequest {
     pub fn parse(i: &[u8]) -> IResult<&[u8], GetAppAttributesRequest> {
         let (i, command_id) = CommandID::parse(i)?;
         let (i, app_identifier) = terminated(take_till(|b| b == 0), le_u8)(i)?;
-        let (i, attribute_ids) = many0(AppAttributeID::parse)(i)?;
+        let (i, attribute_ids) = many0(
+            AppAttributeID::parse
+        )(i)?; 
 
         Ok((
             i,
